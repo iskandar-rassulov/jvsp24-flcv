@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Converter</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>File Converter</h1>
+  <nav>
+    <ul class="menu">
+      <li><a href="#image-section" class="active">Image</a></li>
+      <li><a href="#audio-section">Audio</a></li>
+      <li><a href="#video-section">Video</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <!-- Image Conversion Section -->
+  <section id="image-section" class="converter-section">
+    <h2>Image Conversion</h2>
+    <p>Convert your images to a wide range of formats.</p>
+    <form id="image-form">
+      <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
+      <div class="preview">
+        <p id="no-preview">No preview available</p>
+        <img id="image-preview" alt="Image Preview" hidden>
+      </div>
+      <label for="output-format">Choose output format:</label>
+      <select id="output-format" name="format" required>
+        <option value="jpg">JPG</option>
+        <option value="png">PNG</option>
+        <option value="bmp">BMP</option>
+        <option value="tiff">TIFF</option>
+        <option value="webp">WEBP</option>
+      </select>
+      <button type="submit">Convert</button>
+    </form>
+  </section>
+
+  <!-- Placeholder for Audio Conversion Section -->
+  <section id="audio-section" class="converter-section" hidden>
+    <h2>Audio Conversion</h2>
+    <p>Coming soon...</p>
+  </section>
+
+  <!-- Placeholder for Video Conversion Section -->
+  <section id="video-section" class="converter-section" hidden>
+    <h2>Video Conversion</h2>
+    <p>Coming soon...</p>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2024 File Converter</p>
+</footer>
+
+<script>
+  // Menu navigation
+  document.querySelectorAll('.menu a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.converter-section').forEach(section => section.hidden = true);
+      document.querySelectorAll('.menu a').forEach(link => link.classList.remove('active'));
+      const targetSection = document.querySelector(e.target.getAttribute('href'));
+      targetSection.hidden = false;
+      e.target.classList.add('active');
+    });
+  });
+
+  // Image preview
+  const imageInput = document.getElementById('image-input');
+  const imagePreview = document.getElementById('image-preview');
+  const noPreview = document.getElementById('no-preview');
+
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+        imagePreview.hidden = false;
+        noPreview.hidden = true;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      imagePreview.hidden = true;
+      noPreview.hidden = false;
+    }
+  });
+</script>
+</body>
+</html>
