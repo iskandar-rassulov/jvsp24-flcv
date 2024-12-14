@@ -19,10 +19,10 @@
 </header>
 
 <main>
-  <!-- Image Conversion Section -->
   <section id="image-section" class="converter-section">
     <h2>Image Conversion</h2>
-    <p>Convert your images to a wide range of formats.</p>
+    <p>Convert your images to various formats with ease.</p>
+    <p class="file-limit">Maximum file size is 50 MB.</p>
     <form id="image-form">
       <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
       <div class="preview">
@@ -41,13 +41,11 @@
     </form>
   </section>
 
-  <!-- Placeholder for Audio Conversion Section -->
   <section id="audio-section" class="converter-section" hidden>
     <h2>Audio Conversion</h2>
     <p>Coming soon...</p>
   </section>
 
-  <!-- Placeholder for Video Conversion Section -->
   <section id="video-section" class="converter-section" hidden>
     <h2>Video Conversion</h2>
     <p>Coming soon...</p>
@@ -58,39 +56,6 @@
   <p>&copy; 2024 File Converter</p>
 </footer>
 
-<script>
-  // Menu navigation
-  document.querySelectorAll('.menu a').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.querySelectorAll('.converter-section').forEach(section => section.hidden = true);
-      document.querySelectorAll('.menu a').forEach(link => link.classList.remove('active'));
-      const targetSection = document.querySelector(e.target.getAttribute('href'));
-      targetSection.hidden = false;
-      e.target.classList.add('active');
-    });
-  });
-
-  // Image preview
-  const imageInput = document.getElementById('image-input');
-  const imagePreview = document.getElementById('image-preview');
-  const noPreview = document.getElementById('no-preview');
-
-  imageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        imagePreview.src = e.target.result;
-        imagePreview.hidden = false;
-        noPreview.hidden = true;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      imagePreview.hidden = true;
-      noPreview.hidden = false;
-    }
-  });
-</script>
+<script src="scripts.js"></script>
 </body>
 </html>

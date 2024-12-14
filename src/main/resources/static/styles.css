@@ -74,7 +74,7 @@ form {
     gap: 1rem;
 }
 
-input[type="file"], select {
+input[type="file"] {
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -104,4 +104,24 @@ button {
     color: #fff;
     cursor: pointer;
     font-size: 1rem;
-tran
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #555;
+}
+
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.file-limit {
+    font-size: 0.9rem;
+    color: #777; /* Светло-серый цвет */
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
