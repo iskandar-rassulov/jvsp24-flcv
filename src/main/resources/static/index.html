@@ -24,8 +24,8 @@
     <h2>Image Conversion</h2>
     <p>Convert your images to various formats with ease.</p>
     <p class="file-limit">Maximum file size is 50 MB.</p>
-    <form id="image-form">
-      <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
+    <form id="image-form" method="POST">
+    <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
       <div class="preview">
         <p id="no-preview">No preview available</p>
         <img id="image-preview" alt="Image Preview" hidden>
@@ -44,13 +44,17 @@
 
   <section id="audio-section" class="converter-section hidden">
     <h2>Audio Conversion</h2>
-    <p>Convert your audio files to MP3 or WAV formats.</p>
+    <p>Convert your audio files to various formats.</p>
+    <p class="file-limit">Maximum file size is 50 MB.</p>
     <form id="audio-form" method="POST">
-      <input type="file" id="audio-input" accept=".mp3, .wav" required>
+      <input type="file" id="audio-input" accept=".mp3, .wav, .aac, .flac, .ogg" required>
       <label for="audio-format">Choose output format:</label>
       <select id="audio-format" name="format" required>
         <option value="mp3">MP3</option>
         <option value="wav">WAV</option>
+        <option value="aac">AAC</option>
+        <option value="flac">FLAC</option>
+        <option value="ogg">OGG</option>
       </select>
       <button type="submit">Convert</button>
     </form>
@@ -59,8 +63,21 @@
   <section id="video-section" class="converter-section hidden">
     <h2>Video Conversion</h2>
     <p>Convert your video files to various formats.</p>
-    <!-- Video conversion form -->
+    <p class="file-limit">Maximum file size is 200 MB.</p>
+    <form id="video-form" method="POST">
+      <input type="file" id="video-input" accept=".mp4, .mkv, .mov, .avi, .webm" required>
+      <label for="video-format">Choose output format:</label>
+      <select id="video-format" name="format" required>
+        <option value="mp4">MP4</option>
+        <option value="mkv">MKV</option>
+        <option value="mov">MOV</option>
+        <option value="avi">AVI</option>
+        <option value="webm">WEBM</option>
+      </select>
+      <button type="submit">Convert</button>
+    </form>
   </section>
+
 
 </main>
 
@@ -70,6 +87,7 @@
 
 <script src="image-converter.js"></script>
 <script src="audio-converter.js"></script>
+<script src="video-converter.js"></script>
 <script src="scripts.js"></script>
 </body>
 </html>

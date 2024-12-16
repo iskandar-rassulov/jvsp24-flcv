@@ -13,14 +13,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @RestController
-@RequestMapping("/api/audio")
-public class AudioConverterController {
+@RequestMapping("/api/video")
+public class VideoConverterController {
 
-    private static final Logger LOGGER = Logger.getLogger(AudioConverterController.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(VideoConverterController.class.getName());
 
-    @CrossOrigin(origins = "*") // Если необходимо принимать запросы с другого домена/порта
+    @CrossOrigin(origins = "*") // Если нужно принимать запросы с другого домена
     @PostMapping("/convert")
-    public ResponseEntity<InputStreamResource> convertAudio(
+    public ResponseEntity<InputStreamResource> convertVideo(
             @RequestParam("file") MultipartFile file,
             @RequestParam("format") String format) {
         File inputFile = null;
@@ -29,28 +29,28 @@ public class AudioConverterController {
         try {
             // Проверка поддерживаемых форматов
             if (!isSupportedFormat(format)) {
-                LOGGER.log(Level.WARNING, "Unsupported target audio format: {0}", format);
+                LOGGER.log(Level.WARNING, "Unsupported target video format: {0}", format);
                 return ResponseEntity.badRequest().body(null);
             }
 
-            // Ограничение на размер файла (50 MB)
-            if (file.getSize() > 50 * 1024 * 1024) {
-                LOGGER.log(Level.WARNING, "File size exceeds the limit of 50 MB");
+            // Ограничение на размер файла (напр. 200 MB для видео)
+            if (file.getSize() > 200 * 1024 * 1024) {
+                LOGGER.log(Level.WARNING, "File size exceeds the limit of 200 MB");
                 return ResponseEntity.badRequest().body(null);
             }
 
-            // Сохранение исходного файла во временную директорию
-            inputFile = File.createTempFile("input_audio", getExtension(file.getOriginalFilename()));
+            // Сохранение исходного файла
+            inputFile = File.createTempFile("input_video", getExtension(file.getOriginalFilename()));
             file.transferTo(inputFile);
 
             // Создание выходного файла с нужным расширением
-            outputFile = File.createTempFile("output_audio", "." + format.toLowerCase());
+            outputFile = File.createTempFile("output_video", "." + format.toLowerCase());
 
-            // Вызов FFmpeg для конвертации аудио
-            // Пример: ffmpeg -y -i input.mp3 output.wav
-            // ffmpeg самостоятельно определит входной формат и сгенерирует выходной
+            // Вызов FFmpeg для конвертации видео
+            // Пример простой команды: ffmpeg -y -i input.mp4 output.mkv
+            // При необходимости можно добавить параметры (кодек, битрейт, разрешение и т.д.)
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    "ffmpeg", "-y",      // -y для перезаписи без запроса
+                    "ffmpeg", "-y",
                     "-i", inputFile.getAbsolutePath(),
                     outputFile.getAbsolutePath()
             );
@@ -68,10 +68,10 @@ public class AudioConverterController {
 
             int exitCode = process.waitFor();
             long endTime = System.currentTimeMillis();
-            LOGGER.log(Level.INFO, "FFmpeg audio process completed in {0} ms", (endTime - startTime));
+            LOGGER.log(Level.INFO, "FFmpeg video process completed in {0} ms", (endTime - startTime));
 
             if (exitCode != 0) {
-                LOGGER.log(Level.SEVERE, "FFmpeg audio process failed with exit code {0}", exitCode);
+                LOGGER.log(Level.SEVERE, "FFmpeg video process failed with exit code {0}", exitCode);
                 return ResponseEntity.status(500).body(null);
             }
 
@@ -79,7 +79,7 @@ public class AudioConverterController {
             byte[] fileBytes = Files.readAllBytes(outputFile.toPath());
             InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(fileBytes));
 
-            // Определяем MIME-тип для аудио
+            // Определяем MIME-тип для видео
             String mimeType = resolveMimeType(format);
 
             HttpHeaders headers = new HttpHeaders();
@@ -92,36 +92,36 @@ public class AudioConverterController {
                     .body(resource);
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error during audio conversion: {0}", e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error during video conversion: {0}", e.getMessage());
             return ResponseEntity.status(500).body(null);
         } finally {
-            // Удаляем временные файлы после чтения
+            // Удаляем временные файлы
             if (inputFile != null && inputFile.exists()) inputFile.delete();
             if (outputFile != null && outputFile.exists()) outputFile.delete();
         }
     }
 
     private boolean isSupportedFormat(String format) {
-        // Добавляем поддержку различных аудиоформатов
-        return format.equalsIgnoreCase("mp3") ||
-                format.equalsIgnoreCase("wav") ||
-                format.equalsIgnoreCase("aac") ||
-                format.equalsIgnoreCase("flac") ||
-                format.equalsIgnoreCase("ogg");
+        // Поддерживаемые видеоформаты
+        return format.equalsIgnoreCase("mp4") ||
+                format.equalsIgnoreCase("mkv") ||
+                format.equalsIgnoreCase("mov") ||
+                format.equalsIgnoreCase("avi") ||
+                format.equalsIgnoreCase("webm");
     }
 
     private String resolveMimeType(String format) {
         switch (format.toLowerCase()) {
-            case "mp3":
-                return "audio/mpeg";
-            case "wav":
-                return "audio/wav";
-            case "aac":
-                return "audio/aac";
-            case "flac":
-                return "audio/flac";
-            case "ogg":
-                return "audio/ogg";
+            case "mp4":
+                return "video/mp4";
+            case "mkv":
+                return "video/x-matroska";
+            case "mov":
+                return "video/quicktime";
+            case "avi":
+                return "video/x-msvideo";
+            case "webm":
+                return "video/webm";
             default:
                 return "application/octet-stream";
         }
@@ -131,8 +131,9 @@ public class AudioConverterController {
         if (filename == null) return ".tmp";
         int lastIndex = filename.lastIndexOf(".");
         if (lastIndex == -1) {
-            return ".tmp"; // Если расширения нет
+            return ".tmp";
         }
         return filename.substring(lastIndex);
     }
 }
+
