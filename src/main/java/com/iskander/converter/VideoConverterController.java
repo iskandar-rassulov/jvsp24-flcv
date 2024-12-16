@@ -82,9 +82,14 @@ public class VideoConverterController {
             // Определяем MIME-тип для видео
             String mimeType = resolveMimeType(format);
 
+            // Получаем оригинальное имя файла без расширения
+            String originalFilename = file.getOriginalFilename();
+            String baseName = removeExtension(originalFilename);
+            String newFilename = baseName + "-converted." + format;
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(mimeType));
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=converted." + format);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + newFilename + "\"");
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -134,6 +139,15 @@ public class VideoConverterController {
             return ".tmp";
         }
         return filename.substring(lastIndex);
+    }
+
+    private String removeExtension(String filename) {
+        if (filename == null) return "converted-file";
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot == -1) {
+            return filename; // Нет расширения
+        }
+        return filename.substring(0, lastDot);
     }
 }
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>File Converter</title>
+  <link rel="icon" href="/icon.jpg" type="image/jpeg">
   <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -15,6 +16,7 @@
       <li><button class="menu-button" data-section="image-section">Image</button></li>
       <li><button class="menu-button" data-section="audio-section">Audio</button></li>
       <li><button class="menu-button" data-section="video-section">Video</button></li>
+      <li><button class="menu-button" data-section="document-section">Document</button></li>
     </ul>
   </nav>
 </header>
@@ -24,8 +26,8 @@
     <h2>Image Conversion</h2>
     <p>Convert your images to various formats with ease.</p>
     <p class="file-limit">Maximum file size is 50 MB.</p>
-    <form id="image-form" method="POST">
-    <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
+    <form id="image-form">
+      <input type="file" id="image-input" accept=".jpg, .png, .gif, .bmp, .tiff, .heic, .webp" required>
       <div class="preview">
         <p id="no-preview">No preview available</p>
         <img id="image-preview" alt="Image Preview" hidden>
@@ -66,6 +68,10 @@
     <p class="file-limit">Maximum file size is 200 MB.</p>
     <form id="video-form" method="POST">
       <input type="file" id="video-input" accept=".mp4, .mkv, .mov, .avi, .webm" required>
+      <div class="preview">
+        <p id="video-no-preview">No preview available</p>
+        <video id="video-preview" controls hidden style="max-width: 300px;"></video>
+      </div>
       <label for="video-format">Choose output format:</label>
       <select id="video-format" name="format" required>
         <option value="mp4">MP4</option>
@@ -78,16 +84,37 @@
     </form>
   </section>
 
+  <section id="document-section" class="converter-section hidden">
+    <h2>Document Conversion</h2>
+    <p>Convert your documents between PDF, DOCX and ODT formats.</p>
+    <p class="file-limit">Maximum file size is 50 MB.</p>
+    <form id="document-form" method="POST">
+      <input type="file" id="document-input" accept=".pdf, .docx, .odt" required>
+      <div class="preview">
+        <p id="document-no-preview">No preview available</p>
+        <!-- Предпросмотр для PDF через iframe -->
+        <iframe id="document-preview" hidden style="width: 300px; height: 400px;"></iframe>
+      </div>
+      <label for="document-format">Choose output format:</label>
+      <select id="document-format" name="format" required>
+        <option value="pdf">PDF</option>
+        <option value="docx">DOCX</option>
+        <option value="odt">ODT</option>
+      </select>
+      <button type="submit">Convert</button>
+    </form>
+  </section>
 
 </main>
 
 <footer>
-  <p>&copy; 2024 File Converter</p>
+  <p>Made by Iskandar Rassulov | <a href="https://github.com/iskander-rassulov" target="_blank">GitHub</a></p>
 </footer>
 
 <script src="image-converter.js"></script>
 <script src="audio-converter.js"></script>
 <script src="video-converter.js"></script>
+<script src="document-converter.js"></script>
 <script src="scripts.js"></script>
 </body>
 </html>

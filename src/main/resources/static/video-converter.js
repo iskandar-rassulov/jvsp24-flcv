@@ -11,14 +11,12 @@ document.getElementById("video-form").addEventListener("submit", async (e) => {
     console.log("Selected video file:", file);
     console.log("Target video format:", format);
 
-    // Проверка наличия файла
     if (!file) {
         alert("Please upload a video file.");
         console.error("No file provided for video conversion.");
         return;
     }
 
-    // Проверка размера файла (200 MB лимит для примера)
     if (file.size > 200 * 1024 * 1024) {
         alert("File size exceeds the limit of 200 MB.");
         console.error("File size exceeds the limit: ", file.size);
@@ -57,5 +55,28 @@ document.getElementById("video-form").addEventListener("submit", async (e) => {
     } catch (error) {
         console.error("Error during the video conversion request:", error);
         alert("An error occurred while converting the video.");
+    }
+});
+
+document.getElementById("video-input").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const videoPreview = document.getElementById("video-preview");
+    const noPreviewText = document.getElementById("video-no-preview");
+
+    console.log("Selected file for video preview:", file);
+
+    if (file) {
+        const url = URL.createObjectURL(file);
+        videoPreview.src = url;
+        videoPreview.hidden = false;
+        noPreviewText.hidden = true;
+
+        console.log("Video preview updated successfully.");
+    } else {
+        videoPreview.hidden = true;
+        noPreviewText.hidden = false;
+        videoPreview.src = "";
+
+        console.warn("No file selected for video preview.");
     }
 });

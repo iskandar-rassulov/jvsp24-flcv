@@ -18,7 +18,7 @@ public class ImageConverterController {
 
     private static final Logger LOGGER = Logger.getLogger(ImageConverterController.class.getName());
 
-    @CrossOrigin(origins = "*") // Если необходимо раздавать запросы с других доменов
+    @CrossOrigin(origins = "*")
     @PostMapping("/convert")
     public ResponseEntity<InputStreamResource> convertImage(
             @RequestParam("file") MultipartFile file,
@@ -27,28 +27,23 @@ public class ImageConverterController {
         File outputFile = null;
 
         try {
-            // Проверка поддерживаемых форматов
             if (!isSupportedFormat(format)) {
                 LOGGER.log(Level.WARNING, "Unsupported target format: {0}", format);
                 return ResponseEntity.badRequest().body(null);
             }
 
-            // Ограничение на размер файла (50 MB)
             if (file.getSize() > 50 * 1024 * 1024) {
                 LOGGER.log(Level.WARNING, "File size exceeds the limit of 50 MB");
                 return ResponseEntity.badRequest().body(null);
             }
 
-            // Сохранение исходного файла во временную директорию
             inputFile = File.createTempFile("input", ".tmp");
             file.transferTo(inputFile);
 
-            // Создание выходного файла
             outputFile = File.createTempFile("output", "." + format);
 
-            // Вызов FFmpeg для конвертации изображения
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    "ffmpeg", "-y",      // -y для перезаписи без запроса
+                    "ffmpeg", "-y",
                     "-i", inputFile.getAbsolutePath(),
                     "-vf", "scale=1920:-1",
                     outputFile.getAbsolutePath()
@@ -56,7 +51,6 @@ public class ImageConverterController {
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
-            // Логирование вывода FFmpeg
             long startTime = System.currentTimeMillis();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -74,16 +68,19 @@ public class ImageConverterController {
                 return ResponseEntity.status(500).body(null);
             }
 
-            // Читаем выходной файл в память, чтобы после можно было его удалить
             byte[] fileBytes = Files.readAllBytes(outputFile.toPath());
             InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(fileBytes));
 
-            // Определяем MIME-тип результата
             String mimeType = resolveMimeType(format);
+
+            // Получаем оригинальное имя файла без расширения
+            String originalFilename = file.getOriginalFilename();
+            String baseName = removeExtension(originalFilename);
+            String newFilename = baseName + "-converted." + format;
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(mimeType));
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=converted." + format);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + newFilename + "\"");
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -94,7 +91,6 @@ public class ImageConverterController {
             LOGGER.log(Level.SEVERE, "Error during image conversion: {0}", e.getMessage());
             return ResponseEntity.status(500).body(null);
         } finally {
-            // Удаляем временные файлы
             if (inputFile != null && inputFile.exists()) inputFile.delete();
             if (outputFile != null && outputFile.exists()) outputFile.delete();
         }
@@ -125,5 +121,14 @@ public class ImageConverterController {
             default:
                 return "application/octet-stream";
         }
+    }
+
+    private String removeExtension(String filename) {
+        if (filename == null) return "converted-file";
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot == -1) {
+            return filename; // Нет расширения
+        }
+        return filename.substring(0, lastDot);
     }
 }

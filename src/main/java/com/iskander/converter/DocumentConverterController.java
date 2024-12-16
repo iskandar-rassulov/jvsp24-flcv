@@ -13,23 +13,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @RestController
-@RequestMapping("/api/audio")
-public class AudioConverterController {
+@RequestMapping("/api/document")
+public class DocumentConverterController {
 
-    private static final Logger LOGGER = Logger.getLogger(AudioConverterController.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DocumentConverterController.class.getName());
 
-    @CrossOrigin(origins = "*") // Если необходимо принимать запросы с другого домена/порта
+    @CrossOrigin(origins = "*")
     @PostMapping("/convert")
-    public ResponseEntity<InputStreamResource> convertAudio(
+    public ResponseEntity<InputStreamResource> convertDocument(
             @RequestParam("file") MultipartFile file,
             @RequestParam("format") String format) {
         File inputFile = null;
-        File outputFile = null;
+        File outputDir = null;
 
         try {
             // Проверка поддерживаемых форматов
             if (!isSupportedFormat(format)) {
-                LOGGER.log(Level.WARNING, "Unsupported target audio format: {0}", format);
+                LOGGER.log(Level.WARNING, "Unsupported target document format: {0}", format);
                 return ResponseEntity.badRequest().body(null);
             }
 
@@ -39,25 +39,25 @@ public class AudioConverterController {
                 return ResponseEntity.badRequest().body(null);
             }
 
-            // Сохранение исходного файла во временную директорию
-            inputFile = File.createTempFile("input_audio", getExtension(file.getOriginalFilename()));
+            inputFile = File.createTempFile("input_document", getExtension(file.getOriginalFilename()));
             file.transferTo(inputFile);
 
-            // Создание выходного файла с нужным расширением
-            outputFile = File.createTempFile("output_audio", "." + format.toLowerCase());
+            outputDir = Files.createTempDirectory("document_conversion_").toFile();
 
-            // Вызов FFmpeg для конвертации аудио
-            // Пример: ffmpeg -y -i input.mp3 output.wav
-            // ffmpeg самостоятельно определит входной формат и сгенерирует выходной
+            String convertParam = resolveConvertParam(format);
+            if (convertParam == null) {
+                LOGGER.log(Level.WARNING, "No conversion parameter found for format: {0}", format);
+                return ResponseEntity.badRequest().body(null);
+            }
+
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    "ffmpeg", "-y",      // -y для перезаписи без запроса
-                    "-i", inputFile.getAbsolutePath(),
-                    outputFile.getAbsolutePath()
+                    "soffice", "--headless", "--convert-to", convertParam,
+                    "--outdir", outputDir.getAbsolutePath(),
+                    inputFile.getAbsolutePath()
             );
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
-            // Логирование вывода FFmpeg
             long startTime = System.currentTimeMillis();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
@@ -68,24 +68,27 @@ public class AudioConverterController {
 
             int exitCode = process.waitFor();
             long endTime = System.currentTimeMillis();
-            LOGGER.log(Level.INFO, "FFmpeg audio process completed in {0} ms", (endTime - startTime));
+            LOGGER.log(Level.INFO, "Document conversion completed in {0} ms", (endTime - startTime));
 
             if (exitCode != 0) {
-                LOGGER.log(Level.SEVERE, "FFmpeg audio process failed with exit code {0}", exitCode);
+                LOGGER.log(Level.SEVERE, "LibreOffice conversion failed with exit code {0}", exitCode);
                 return ResponseEntity.status(500).body(null);
             }
 
-            // Читаем выходной файл в память
-            byte[] fileBytes = Files.readAllBytes(outputFile.toPath());
+            File convertedFile = findConvertedFile(outputDir, format);
+            if (convertedFile == null || !convertedFile.exists()) {
+                LOGGER.log(Level.SEVERE, "Converted file not found. Possibly this conversion is not supported directly.");
+                return ResponseEntity.status(500).body(null);
+            }
+
+            byte[] fileBytes = Files.readAllBytes(convertedFile.toPath());
             InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(fileBytes));
 
-            // Определяем MIME-тип для аудио
             String mimeType = resolveMimeType(format);
 
-            // Получаем оригинальное имя файла без расширения
             String originalFilename = file.getOriginalFilename();
             String baseName = removeExtension(originalFilename);
-            String newFilename = baseName + "-converted." + format;
+            String newFilename = baseName + "-converted." + format.toLowerCase();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(mimeType));
@@ -97,36 +100,33 @@ public class AudioConverterController {
                     .body(resource);
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error during audio conversion: {0}", e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error during document conversion: {0}", e.getMessage());
             return ResponseEntity.status(500).body(null);
         } finally {
-            // Удаляем временные файлы после чтения
             if (inputFile != null && inputFile.exists()) inputFile.delete();
-            if (outputFile != null && outputFile.exists()) outputFile.delete();
+            if (outputDir != null && outputDir.exists()) {
+                for (File f : outputDir.listFiles()) {
+                    f.delete();
+                }
+                outputDir.delete();
+            }
         }
     }
 
     private boolean isSupportedFormat(String format) {
-        // Добавляем поддержку различных аудиоформатов
-        return format.equalsIgnoreCase("mp3") ||
-                format.equalsIgnoreCase("wav") ||
-                format.equalsIgnoreCase("aac") ||
-                format.equalsIgnoreCase("flac") ||
-                format.equalsIgnoreCase("ogg");
+        return format.equalsIgnoreCase("pdf") ||
+                format.equalsIgnoreCase("docx") ||
+                format.equalsIgnoreCase("odt");
     }
 
     private String resolveMimeType(String format) {
         switch (format.toLowerCase()) {
-            case "mp3":
-                return "audio/mpeg";
-            case "wav":
-                return "audio/wav";
-            case "aac":
-                return "audio/aac";
-            case "flac":
-                return "audio/flac";
-            case "ogg":
-                return "audio/ogg";
+            case "pdf":
+                return "application/pdf";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "odt":
+                return "application/vnd.oasis.opendocument.text";
             default:
                 return "application/octet-stream";
         }
@@ -136,7 +136,7 @@ public class AudioConverterController {
         if (filename == null) return ".tmp";
         int lastIndex = filename.lastIndexOf(".");
         if (lastIndex == -1) {
-            return ".tmp"; // Если расширения нет
+            return ".tmp";
         }
         return filename.substring(lastIndex);
     }
@@ -145,8 +145,33 @@ public class AudioConverterController {
         if (filename == null) return "converted-file";
         int lastDot = filename.lastIndexOf('.');
         if (lastDot == -1) {
-            return filename; // Нет расширения
+            return filename;
         }
         return filename.substring(0, lastDot);
+    }
+
+    private String resolveConvertParam(String format) {
+        // Попытка без фильтров для DOCX и ODT:
+        switch (format.toLowerCase()) {
+            case "pdf":
+                return "pdf:writer_pdf_Export";
+            case "docx":
+                return "docx"; // Без фильтра
+            case "odt":
+                return "odt";  // Без фильтра
+            default:
+                return null;
+        }
+    }
+
+    private File findConvertedFile(File outputDir, String format) {
+        File[] files = outputDir.listFiles();
+        if (files == null) return null;
+        for (File f : files) {
+            if (f.getName().toLowerCase().endsWith("." + format.toLowerCase())) {
+                return f;
+            }
+        }
+        return null;
     }
 }
