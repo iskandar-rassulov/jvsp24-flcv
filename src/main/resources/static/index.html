@@ -6,14 +6,15 @@
   <title>File Converter</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 <header>
   <h1>File Converter</h1>
   <nav>
     <ul class="menu">
-      <li><a href="#image-section" class="active">Image</a></li>
-      <li><a href="#audio-section">Audio</a></li>
-      <li><a href="#video-section">Video</a></li>
+      <li><button class="menu-button" data-section="image-section">Image</button></li>
+      <li><button class="menu-button" data-section="audio-section">Audio</button></li>
+      <li><button class="menu-button" data-section="video-section">Video</button></li>
     </ul>
   </nav>
 </header>
@@ -41,21 +42,34 @@
     </form>
   </section>
 
-  <section id="audio-section" class="converter-section" hidden>
+  <section id="audio-section" class="converter-section hidden">
     <h2>Audio Conversion</h2>
-    <p>Coming soon...</p>
+    <p>Convert your audio files to MP3 or WAV formats.</p>
+    <form id="audio-form" method="POST">
+      <input type="file" id="audio-input" accept=".mp3, .wav" required>
+      <label for="audio-format">Choose output format:</label>
+      <select id="audio-format" name="format" required>
+        <option value="mp3">MP3</option>
+        <option value="wav">WAV</option>
+      </select>
+      <button type="submit">Convert</button>
+    </form>
   </section>
 
-  <section id="video-section" class="converter-section" hidden>
+  <section id="video-section" class="converter-section hidden">
     <h2>Video Conversion</h2>
-    <p>Coming soon...</p>
+    <p>Convert your video files to various formats.</p>
+    <!-- Video conversion form -->
   </section>
+
 </main>
 
 <footer>
   <p>&copy; 2024 File Converter</p>
 </footer>
 
+<script src="image-converter.js"></script>
+<script src="audio-converter.js"></script>
 <script src="scripts.js"></script>
 </body>
 </html>

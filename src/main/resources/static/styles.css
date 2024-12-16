@@ -125,3 +125,29 @@ footer {
     margin-bottom: 1rem;
     text-align: center;
 }
+
+.hidden {
+    display: none;
+}
+
+.menu-button {
+    padding: 0.7rem 1.5rem; /* Как у обычной кнопки */
+    border: none;
+    border-radius: 4px;
+    background: #333; /* Тёмный фон */
+    color: #fff; /* Белый текст */
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.menu-button:hover {
+    background: #555; /* Светлее при наведении */
+}
+
+.menu-button.active {
+    background: #555; /* Совпадает с hover */
+    color: #fff;
+}
+
+
