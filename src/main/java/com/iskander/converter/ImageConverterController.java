@@ -75,8 +75,15 @@ public class ImageConverterController {
 
             // Получаем оригинальное имя файла без расширения
             String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null) {
+                originalFilename = "unknown-file";
+            }
             String baseName = removeExtension(originalFilename);
             String newFilename = baseName + "-converted." + format;
+
+            LOGGER.log(Level.INFO, "Original filename: {0}", originalFilename);
+            LOGGER.log(Level.INFO, "Base name: {0}", baseName);
+            LOGGER.log(Level.INFO, "New filename: {0}", newFilename);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(mimeType));

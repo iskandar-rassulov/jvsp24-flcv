@@ -33,10 +33,25 @@ document.getElementById("image-form").addEventListener("submit", async (e) => {
             console.log("Server response OK. Preparing file download...");
 
             const blob = await response.blob();
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let fileName = `converted.${format}`; // Default name if header is not present
+
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (fileNameMatch && fileNameMatch.length === 2) {
+                    fileName = fileNameMatch[1];
+                    console.log("Filename extracted from header:", fileName);
+                } else {
+                    console.warn("Filename not found in Content-Disposition header.");
+                }
+            } else {
+                console.warn("Content-Disposition header is missing.");
+            }
+
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `converted.${format}`;
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -51,6 +66,7 @@ document.getElementById("image-form").addEventListener("submit", async (e) => {
         alert("An error occurred while converting the image.");
     }
 });
+
 
 document.getElementById("image-input").addEventListener("change", (e) => {
     const file = e.target.files[0];
