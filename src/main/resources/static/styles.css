@@ -150,4 +150,14 @@ footer {
     color: #fff;
 }
 
+footer p a {
+    color: #a3cef1;
+    text-decoration: none;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+footer p a:hover {
+    text-decoration: none;
+    color: #a3cef193;
+}
 
